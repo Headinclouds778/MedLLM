@@ -30,7 +30,9 @@ class LLMHandler:
         generated_ids = self.model.generate(
             **model_inputs,
             max_new_tokens=self.config['model']['max_token'],
-            temperature=self.config['model']['temperature']
+            temperature=self.config['model']['temperature'],
+            do_sample=True,
+            pad_token_id=self.tokenizer.eos_token_id
         )
         generated_ids = [
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
