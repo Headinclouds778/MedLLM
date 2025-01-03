@@ -1,8 +1,12 @@
 import csv
 import re
+import os
 from datetime import datetime
 from utils.llm_handler import LLMHandler
 from utils.config_loader import ConfigLoader
+from utils.utils import Extract_answer
+
+no_response_count = 0
 
 def load_validation_set(filename):
     data = []
@@ -21,27 +25,24 @@ def load_validation_set(filename):
             data.append(question_data)
     return data
 
-def extract_answer(response):
-    # 使用正则表达式提取字母
-    match = re.search(r'\b[A-E]\b', response)  # 查找 'A', 'B', 'C', 'D', 'E'
-    if match:
-        return match.group(0)  # 返回匹配的字母
-    else:
-        return None  # 如果没有找到匹配的字母
 
 config = ConfigLoader().get_config()
 
 validation_set = load_validation_set('./data/validation_set.csv')
 
-model_instance = LLMHandler(config['model']['name'])
+model_instance = LLMHandler(config['model']['name_or_path'])
 
 current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-output_filename = "./output/" + current_time + ".csv"
+output_folder = "./output"
+output_path = "./output/" + current_time + ".csv"
 
 num = 0
 correct_num = 0
 
-with open(output_filename, mode='w', newline='', encoding='utf-8') as file:
+if not os.path.exists(output_folder):
+    os.makedirs(output_folder)
+
+with open(output_path, mode='w', newline='', encoding='utf-8') as file:
     writer = csv.writer(file)
     writer.writerow(['id', 'question', 'answerA', 'answerB', 'answerC', 'answerD', 'answerE', 'correctAnswer','modelResponse', 'modelAnswer', 'is_correct'])
 
@@ -56,9 +57,21 @@ with open(output_filename, mode='w', newline='', encoding='utf-8') as file:
 
         # print(f"prompt:\n{prompt}\n")
 
-        response = model_instance.generate_response(prompt)
+        method = config['model']['method']
+        if method == 'direct_prompt':
+            response = model_instance.generate_response_in_a_letter(prompt)
+        elif method == 'cot':
+            response = model_instance.query_response_cot(question)
+        elif method == 'scot':
+            response = model_instance.query_response_scot(question)
+        elif method == 'knowledge_prompt':
+            response = model_instance.query_response_with_knowledge_prompt(question)
+        elif method == 'few_shot_prompt':
+            response = model_instance.query_response_with_few_shot_prompt(question)
+        else:
+            raise ValueError('Unknown method set in config.yml')
 
-        extracted_answer = extract_answer(response)
+        extracted_answer = Extract_answer(response, no_response_count)
 
         num = num + 1
         if extracted_answer == question['correctAnswer']:
