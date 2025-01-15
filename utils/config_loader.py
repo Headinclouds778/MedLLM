@@ -5,7 +5,7 @@ class ConfigLoader:
         self.config = self.load_config()
 
     def load_config(self):
-        with open('../config.yml', 'r') as file:
+        with open("D:/github_repository/MedLLM/config.yml", 'r') as file:
             config = yaml.load(file, Loader=yaml.FullLoader)
         return config
 

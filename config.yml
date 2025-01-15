@@ -1,5 +1,6 @@
 model:
   name_or_path: "D:/github_repository/MedLLM/Qwen2.5-0.5B-Instruct-PT+SFT"
-  max_token: 5
+  max_token: 500
   do_sample: True # Adjusting the temperature is effective only when sampling mode is enabled.
   temperature: 0.1
+  method: "scot"

@@ -23,6 +23,7 @@ def load_validation_set(filename):
                 'correctAnswer': row['correctAnswer']
             }
             data.append(question_data)
+            if len(data) == 100: break
     return data
 
 
@@ -71,6 +72,7 @@ with open(output_path, mode='w', newline='', encoding='utf-8') as file:
         else:
             raise ValueError('Unknown method set in config.yml')
 
+        print(response)
         extracted_answer = Extract_answer(response, no_response_count)
 
         num = num + 1
