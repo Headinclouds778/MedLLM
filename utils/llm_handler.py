@@ -12,8 +12,13 @@ from utils.config_loader import ConfigLoader
 class LLMHandler:
     def __init__(self, model_name: str):
         self.config = ConfigLoader().get_config()
-        self.model_name = model_name  # Qwen/Qwen2.5-Coder-0.5B 或 Qwen/Qwen2.5-Coder-0.5B-Instruct
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self.model = AutoModelForCausalLM.from_pretrained(model_name)
+        local_path = model_name
+
+        # 加载分词器和模型
+        self.tokenizer = AutoTokenizer.from_pretrained(local_path, local_files_only=True)  # 强制使用本地文件
+        self.model = AutoModelForCausalLM.from_pretrained(local_path, local_files_only=True)  # 强制使用本地文件
+
         self.pad_token_id = self.tokenizer.pad_token_id if self.tokenizer.pad_token_id is not None else self.tokenizer.eos_token_id
         # 自动检测可用的设备 (GPU / CPU)
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
